@@ -28,7 +28,7 @@ from skimage.filters import sobel_h, sobel, sobel_v,roberts, prewitt
 
 # Show the figures / plots inside the notebook
 def show_images(images,titles=None):
-    #This function is used to show image(s) with titles by sending an array of images and an array of associated titles
+    #This function is used to show image(s) with titles by sending an array of images and an array of associated titles..
     # images[0] will be drawn with the title titles[0] if exists
     # You aren't required to understand this function, use it as-is.
     n_ims = len(images)
