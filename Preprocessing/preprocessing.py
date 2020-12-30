@@ -11,7 +11,7 @@ import skimage.filters as fr
 import skimage as sk
 import cv2, time
 %matplotlib inline
-%load_ext autoreload
+%load_ext autoreload                                   
 %autoreload 2
 
 def binraization(img,n=8,t=15):
