@@ -10,21 +10,24 @@ import skimage as sk
 import cv2, time, os, math
 from skimage.transform import hough_line, hough_line_peaks, rotate
 from rotation import rotateImage
-from remove_lines import getStaffLines
+from remove_lines import *
 from skimage.exposure import histogram
 from matplotlib.pyplot import bar
-from skimage.color import rgb2gray,rgb2hsv
+from skimage.color import rgb2gray,rgb2hsv, rgba2rgb
 # Convolution:
-from scipy.signal import convolve2d
+from scipy.signal import convolve2d, find_peaks
 from scipy import fftpack
 from skimage.util import random_noise
-from skimage.filters import median
+from skimage.filters import median, threshold_otsu
 from skimage.feature import canny
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
 from matplotlib import cm
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
+from beams import getNearestLine, getHeadCharacter, getNoteHeads
+from segmentation import getObjects, getLines, segmentImage
 # Edges
 from skimage.filters import sobel_h, sobel, sobel_v,roberts, prewitt
+from functools import cmp_to_key
 
 # Show the figures / plots inside the notebook
 def show_images(images,titles=None):
@@ -96,19 +99,26 @@ def getRefLengths(img):
     
     for i in range(0, cols):
         a = img[:,i]
-        starts = np.array((a[:-1] == 1) & (a[1:] == 0))
+        starts = np.array((a[:-1] != 0) & (a[1:] == 0))
         starts_ix = np.where(starts)[0] + 2
-        ends = np.array((a[:-1] == 0) & (a[1:] == 1))
+        ends = np.array((a[:-1] == 0) & (a[1:] != 0))
         ends_ix = np.where(ends)[0] + 2
         s1 = starts_ix.size
         s2 = ends_ix.size
-        if s2 > s1:
-            starts_ix = np.pad(starts_ix,(s2-s1,0), mode='constant', constant_values=(1))
-        elif s1 > s2:
-            ends_ix = np.pad(ends_ix,(0,s1-s2), mode='constant', constant_values=(a.size + 1))
-        elif s1 > 0 and s2 > 0 and starts_ix[0] > ends_ix[0]:
-            starts_ix = np.pad(starts_ix,(1,0), mode='constant', constant_values=(1))
-            ends_ix = np.pad(ends_ix,(0,1), mode='constant', constant_values=(a.size + 1))
+        
+        if a[0] == 0:
+            starts_ix = np.append(1, starts_ix)
+
+        if a[-1] == 0:
+            ends_ix = np.append(ends_ix, a.size+1)
+        
+#         if s2 > s1:
+#             starts_ix = np.pad(starts_ix,(s2-s1,0), mode='constant', constant_values=(1))
+#         elif s1 > s2:
+#             ends_ix = np.pad(ends_ix,(0,s1-s2), mode='constant', constant_values=(a.size + 1))
+#         elif s1 > 0 and s2 > 0 and starts_ix[0] > ends_ix[0]:
+#             starts_ix = np.pad(starts_ix,(1,0), mode='constant', constant_values=(1))
+#             ends_ix = np.pad(ends_ix,(0,1), mode='constant', constant_values=(a.size + 1))
             
         l0 = ends_ix - starts_ix
         starts_ix1 = np.pad(starts_ix[1:],(0,1), mode='constant', constant_values=(a.size + 1)) 
