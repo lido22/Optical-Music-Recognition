@@ -54,24 +54,27 @@ def getObjects(staffless, staffHeight, spaceHeight):
 
     mergedRects = mergeContours(staffless, boundingRects, staffHeight, spaceHeight)
     
-    
-    return mergedRects
     # cp = cv2.cvtColor(staffless, cv2.COLOR_GRAY2BGR)
     
     # for b in mergedRects:
     #     cv2.rectangle(cp, (b[0],b[1]), (b[2],b[3]), (0, 255, 0), 1) 
     
+    # plt.imsave('after' + str(j) + '.png', cp)
+    
+    return mergedRects
+
 #     for c in contours:
 #         (x,y,w,h) = cv2.boundingRect(c)
 #         min_x, max_x = x, x+w
 #         min_y, max_y = y, y+h
 #         cv2.rectangle(cp, (min_x,min_y), (max_x,max_y), (255, 0, 0), 1)
 
-    # plt.imsave('after' + str(j) + '.png', cp)
 
 def mergeContours(staffless, boundingRects, staffHeight, spaceHeight):
     
-    boundingRects = sorted(boundingRects, key=cmpWrap(cmpWrap, staffHeight))
+    taken = np.zeros((len(boundingRects),), dtype=np.bool)
+    # boundingRects = sorted(boundingRects, key=cmpWrap(cmpWrap, staffHeight))
+    boundingRects = sorted(boundingRects, key=lambda b: b[0])  
 
     (x,y,w,h) = boundingRects[0]
     mergedRects = [(x,y,x+w,y+h)]
@@ -81,7 +84,7 @@ def mergeContours(staffless, boundingRects, staffHeight, spaceHeight):
         old_x,old_y,old_x2,old_y2 = mergedRects[k]
         old_w = old_x2 - old_x
         old_h = old_y2 - old_y
-        
+
         # print(i)
         # print(old_x, old_y, old_x2, old_y2)
         # print(old_w, old_h)
@@ -89,28 +92,18 @@ def mergeContours(staffless, boundingRects, staffHeight, spaceHeight):
         # print(w,h) 
         # print()
         # cp = cv2.cvtColor(staffless, cv2.COLOR_GRAY2BGR)
-        
+
         # cv2.rectangle(cp, (old_x,old_y), (old_x2,old_y2), (0, 255, 0), 1) 
         # cv2.rectangle(cp, (x,y), (x+w,y+h), (0, 0, 255), 1) 
-        
+
         # plt.imsave('it' + str(i) + '.png', cp)
-        
+
         if w < 2*staffHeight and h < 2*staffHeight:
             continue
+        
+        if ((((x - old_x2) < 0.75*spaceHeight and (x - old_x2) >= 0) and ((old_h <= spaceHeight + staffHeight) or (h <= spaceHeight + staffHeight)))
+            or (x < old_x2)):
 
-        if (((abs(x - old_x2) < 0.75*spaceHeight or abs(old_x - x-w) < 0.75*spaceHeight) 
-            and ((old_h < 3*staffHeight+spaceHeight) or (h < 3*staffHeight + spaceHeight)))
-            or (   
-                (x >= old_x and x <= old_x2 and y >= old_y and y <= old_y2)
-                or (x >= old_x and x <= old_x2 and y+h >= old_y and y+h <= old_y2)
-                or (x+w >= old_x and x+w <= old_x2 and y >= old_y and y <= old_y2)
-                or (x+w >= old_x and x+w <= old_x2 and y+h >= old_y and y+h <= old_y2)                            
-                or (old_x >= x and old_x <= x+w and old_y >= y and old_y <= y+h)
-                or (old_x >= x and old_x <= x+w and old_y2 >= y and old_y2 <= y+h)
-                or (old_x2 >= x and old_x2 <= x+w and old_y >= y and old_y <= y+h)
-                or (old_x2 >= x and old_x2 <= x+w and old_y2 >= y and old_y2 <= y+h)
-                )):
-            
             mergedRects[k] = (min(old_x,x), min(old_y,y), max(old_x2,x+w), max(old_y2,y+h))
         else:
             mergedRects.append((x,y,x+w,y+h))
@@ -160,9 +153,8 @@ def segmentImage(staffless, lines, staffHeight, spaceHeight):
     for i in range(len(halfs) - 1):
         segment = staffless[halfs[i]:halfs[i+1] + 1]
         mergedRects = getObjects(segment, staffHeight, spaceHeight)
-        
+
         for b in mergedRects:
             boundingRects.append((b[0], halfs[i] + b[1],b[2], halfs[i] + b[3]))
-            
-    return boundingRects
     
+    return boundingRects
