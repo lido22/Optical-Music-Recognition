@@ -1,7 +1,7 @@
 import numpy as np
 import skimage.io as io
 import matplotlib.pyplot as plt
-from skimage.morphology import binary_erosion, binary_dilation, binary_closing,skeletonize, thin
+from skimage.morphology import binary_erosion, binary_dilation, binary_closing,binary_opening,skeletonize, thin
 from skimage.measure import find_contours
 from skimage.draw import rectangle
 from collections import Counter
