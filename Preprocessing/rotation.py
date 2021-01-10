@@ -1,5 +1,14 @@
 from commonfunctions import *
 
+
+def downSize(image, width=1000):
+    (h, w) = image.shape[:2]
+    print(h, w)
+    shrinkingRatio = width / float(w)
+    dsize  = (width, int(h * shrinkingRatio))
+    resized = cv2.resize(image, dsize , interpolation=cv2.INTER_AREA)
+    return resized
+    
 def getTheta(point1, point2):
     with np.errstate(divide='ignore'):
         m = (point2[1]-point1[1])/(point2[0]-point1[0])
