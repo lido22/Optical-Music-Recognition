@@ -1,8 +1,16 @@
 from commonfunctions import *
 
 def getLines(img, staffHeight, spaceHeight):
-    rows_sum = np.sum(img, axis=1)
-    lines, _ = find_peaks(rows_sum, height = 0.2*img.shape[1], distance=spaceHeight+staffHeight//2)
+    cp = img.copy()
+
+    kernel = np.ones((staffHeight, 1))
+    dilate = cv2.dilate(cp, kernel)
+
+    # show_images([dilate])
+    rows_sum = np.sum(dilate, axis=1)
+    
+    lines, _ = find_peaks(rows_sum, height = 0.2*img.shape[1], distance=spaceHeight)
+
     return lines
 
 
