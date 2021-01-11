@@ -15,7 +15,7 @@ from skimage.exposure import histogram
 from matplotlib.pyplot import bar
 from skimage.color import rgb2gray,rgb2hsv, rgba2rgb
 # Convolution:
-from scipy.signal import convolve2d, find_peaks
+from scipy.signal import convolve2d, find_peaks, peak_widths
 from scipy import fftpack
 from skimage.util import random_noise
 from skimage.filters import median, threshold_otsu
@@ -23,8 +23,8 @@ from skimage.feature import canny
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
 from matplotlib import cm
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
-from beams import getNearestLine, getHeadCharacter, getNoteHeads
-from segmentation import getObjects, getLines, segmentImage
+from notes import getNoteCharacter, getHeadCharacter
+from segmentation import getObjects, getLines, getHalfs, segmentImage
 # Edges
 from skimage.filters import sobel_h, sobel, sobel_v,roberts, prewitt
 from functools import cmp_to_key

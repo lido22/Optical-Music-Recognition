@@ -1,14 +1,5 @@
 from commonfunctions import *
 
-
-def downSize(image, width=1000):
-    (h, w) = image.shape[:2]
-    print(h, w)
-    shrinkingRatio = width / float(w)
-    dsize  = (width, int(h * shrinkingRatio))
-    resized = cv2.resize(image, dsize , interpolation=cv2.INTER_AREA)
-    return resized
-    
 def getTheta(point1, point2):
     with np.errstate(divide='ignore'):
         m = (point2[1]-point1[1])/(point2[0]-point1[0])
@@ -501,26 +492,26 @@ def getAreaOfInterest2(originalImage):
     if xmax > originalImage.shape[1]:
         lastColumn = originalImage[:,originalImage.shape[1]-1]
         t = np.mean(lastColumn)
-        lastColumn[lastColumn<t] = np.max(lastColumn)    
+        lastColumn[lastColumn<t] = t    
         originalImage = np.pad(originalImage, ((0,0), (0, int(xmax-originalImage.shape[1]))), mode="edge")
 
     if ymax > originalImage.shape[0]:
         lastRow = originalImage[originalImage.shape[0]-1,:]
         t = np.mean(lastRow)
-        lastRow[lastRow<t] = np.max(lastRow)    
+        lastRow[lastRow<t] = t    
         originalImage = np.pad(originalImage, ((0, int(ymax-originalImage.shape[0])), (0, 0)), mode="edge")
 
     if xmin < 0:
         firstColumn = originalImage[:,0]
         t = np.mean(firstColumn)
-        firstColumn[firstColumn<t] = np.max(firstColumn)    
+        firstColumn[firstColumn<t] = t    
         originalImage = np.pad(originalImage, (((0,0), (int(np.abs(xmin)), 0))), mode="edge")
         points[:,0] += abs(xmin)
 
     if ymin < 0:
         firstRow = originalImage[0,:]
         t = np.mean(firstRow)
-        firstRow[firstRow<t] = np.max(firstRow)    
+        firstRow[firstRow<t] = t    
         originalImage = np.pad(originalImage, ((int(abs(ymin)), 0), (0, 0)), mode="edge")
         points[:,1] += abs(ymin)
 
