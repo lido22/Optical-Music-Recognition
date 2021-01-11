@@ -10,7 +10,7 @@ import skimage as sk
 import cv2, time, os, math
 from skimage.transform import hough_line, hough_line_peaks, rotate
 from rotation import rotateImage
-from remove_lines import *
+from remove_lines import getCandidateStaffs, removeLonelyStaffs
 from skimage.exposure import histogram
 from matplotlib.pyplot import bar
 from skimage.color import rgb2gray,rgb2hsv, rgba2rgb

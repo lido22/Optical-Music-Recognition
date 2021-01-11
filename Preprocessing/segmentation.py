@@ -2,7 +2,7 @@ from commonfunctions import *
 
 def getLines(img, staffHeight, spaceHeight):
     rows_sum = np.sum(img, axis=1)
-    lines, _ = find_peaks(rows_sum, height = 0.25*img.shape[1], distance=spaceHeight+staffHeight//2)
+    lines, _ = find_peaks(rows_sum, height = 0.2*img.shape[1], distance=spaceHeight+staffHeight//2)
     return lines
 
 
@@ -34,7 +34,7 @@ def getHalfs(lines, spaceHeight, height):
 def getObjects(staffless, staffHeight, spaceHeight):
 #     print(staffHeight, spaceHeight)
     cnt, hir = cv2.findContours(staffless, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    
+
     contours = []
     
     for i in range(len(cnt)):
@@ -102,7 +102,7 @@ def mergeContours(staffless, boundingRects, staffHeight, spaceHeight):
             continue
         
         if ((((x - old_x2) < 0.75*spaceHeight and (x - old_x2) >= 0) and ((old_h <= spaceHeight + staffHeight) or (h <= spaceHeight + staffHeight)))
-            or (x < old_x2)):
+            or (x < old_x2 and h < 3 * spaceHeight)):
 
             mergedRects[k] = (min(old_x,x), min(old_y,y), max(old_x2,x+w), max(old_y2,y+h))
         else:
@@ -146,13 +146,20 @@ def cmpWrap(cmpWrap, staffHeight):
                 return False
     return K
 
-def segmentImage(staffless, lines, staffHeight, spaceHeight):
+def segmentImage(staffless, lines, staffHeight, spaceHeight, j):
     halfs = getHalfs(lines, spaceHeight, staffless.shape[0])
     
     boundingRects = []
     for i in range(len(halfs) - 1):
         segment = staffless[halfs[i]:halfs[i+1] + 1]
         mergedRects = getObjects(segment, staffHeight, spaceHeight)
+
+        # cp = cv2.cvtColor(segment, cv2.COLOR_GRAY2BGR)
+
+        # for b in mergedRects:
+        #     cv2.rectangle(cp, (b[0],b[1]), (b[2],b[3]), (0, 255, 0), 1) 
+    
+        # plt.imsave('after' + str(j) + str(i) + '.png', cp)
 
         for b in mergedRects:
             boundingRects.append((b[0], halfs[i] + b[1],b[2], halfs[i] + b[3]))

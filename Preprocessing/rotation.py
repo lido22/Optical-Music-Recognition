@@ -625,4 +625,4 @@ def checkVertical(img):
     return (rotated*255).astype(np.uint8)
 
 def rotateImage(img):
-    return checkVertical(getAreaOfInterest(getAreaOfInterest2(img)))
+    return getAreaOfInterest(checkVertical(getAreaOfInterest(getAreaOfInterest2(img))))
