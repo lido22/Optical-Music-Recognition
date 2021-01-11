@@ -1,7 +1,7 @@
 import numpy as np
 import skimage.io as io
 import matplotlib.pyplot as plt
-from skimage.morphology import binary_erosion, binary_dilation, binary_closing,skeletonize, thin
+from skimage.morphology import binary_erosion, binary_dilation,binary_opening, binary_closing,skeletonize, thin
 from skimage.measure import find_contours
 from skimage.draw import rectangle
 from collections import Counter
@@ -10,7 +10,7 @@ import skimage as sk
 import cv2, time, os, math
 from skimage.transform import hough_line, hough_line_peaks, rotate
 from rotation import rotateImage
-from remove_lines import getCandidateStaffs, removeLonelyStaffs
+from remove_lines import *
 from skimage.exposure import histogram
 from matplotlib.pyplot import bar
 from skimage.color import rgb2gray,rgb2hsv, rgba2rgb
@@ -23,8 +23,9 @@ from skimage.feature import canny
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
 from matplotlib import cm
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
-from notes import getNoteCharacter, getHeadCharacter
+from notes import getNoteCharacter, getHeadCharacter,getNearestLine 
 from segmentation import getObjects, getLines, getHalfs, segmentImage
+from classifer import *
 # Edges
 from skimage.filters import sobel_h, sobel, sobel_v,roberts, prewitt
 from functools import cmp_to_key

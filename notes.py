@@ -71,7 +71,7 @@ def getBeamNoteHeads(img, boundingRect, staffHeight, spaceHeight):
     return hists, beams
 
 def getHeadCharacter(top, distanceTop, bottom, distanceBottom, spaceHeight):
-
+#     print(top,bottom,distanceTop,distanceBottom)
     if top == 3 and bottom == 4:
         if -distanceBottom >= 0.25 * spaceHeight:
             return 'e'
@@ -164,7 +164,7 @@ def getNoteCharacter(originalImage, boundingRect, noteClass, lines, staffHeight,
     
     contourImage = img[min_y:max_y, min_x:max_x]
     
-#     show_images([contourImage])
+
     character = ''
     
     if noteClass == 'a_1':
@@ -257,7 +257,7 @@ def getNoteCharacter(originalImage, boundingRect, noteClass, lines, staffHeight,
             character += '/16'
         else:
             character += '/32'
-    elif noteClass == 'beam':
+    elif noteClass == "beam":
         heads, noOfBeams = getBeamNoteHeads(img, boundingRect, staffHeight, spaceHeight)
         division = int(8*noOfBeams)
         for h in heads:

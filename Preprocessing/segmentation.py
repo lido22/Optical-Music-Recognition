@@ -146,7 +146,7 @@ def cmpWrap(cmpWrap, staffHeight):
                 return False
     return K
 
-def segmentImage(staffless, lines, staffHeight, spaceHeight, j):
+def segmentImage(staffless, lines, staffHeight, spaceHeight):
     halfs = getHalfs(lines, spaceHeight, staffless.shape[0])
     
     boundingRects = []

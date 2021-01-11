@@ -69,10 +69,13 @@ for i,img in enumerate(images):
     print('Ref lengths time:' + str(time.time() - start))
     
     start = time.time()
-    filteredImg = getCandidateStaffs(binary, staffHeight)
-    filteredImg, candidates, eliminated = removeLonelyStaffs(candidates, binary, staffHeight, spaceHeight, eliminated)
-
-    staffLess = (binary-filteredImg+1).astype(np.uint8)
+    filteredImg, candidates = getCandidateStaffs(binary, staffHeight)
+    filteredImg, candidates, eliminated = removeLonelyStaffs(candidates, binary, staffHeight, spaceHeight, eliminated=[])
+#     filteredImg1, candidates, eliminated = RemoveThinStaffs(candidates, filteredImg, staffHeight)
+#     filteredImg2, candidates, eliminated = removeLonelyStaffs(candidates, binary, staffHeight, spaceHeight, eliminated)
+#     filteredImg3, candidates = addFalseNegatives(candidates, filteredImg2, staffHeight, staffHeight, eliminated)
+#     # print(filteredImg3)
+    staffLess = (binary-filteredImg).astype(np.uint8)
     print('staff removal time:' + str(time.time() - start))
 
     start = time.time()
@@ -121,7 +124,7 @@ for i,img in enumerate(images):
             output+= "} "
             
         #note
-        elif symbol_name[0]=="a":
+        elif symbol_name[0  ]=="a":
             try:
                 output += getNoteCharacter(staffLess, o, symbol_name, lines, staffHeight, spaceHeight)+" "
             except:
