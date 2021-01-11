@@ -1,30 +1,5 @@
 from commonfunctions import *
 
-def ignoreInterStaffs(filteredImg,lines, staffHeight, spaceHeight):
-    r = np.linspace(0, filteredImg.shape[0], filteredImg.shape[0]-1, endpoint=False).astype(np.uint32)
-    rng = lines[0]-spaceHeight//2
-    rem = np.linspace(0, rng, rng+1).astype(np.uint32)
-    r = np.setdiff1d(r, rem)
-    
-    for i in range(4,len(lines), 5):
-        if i != len(lines)-1:
-            start = lines[i]+spaceHeight//2
-            end = lines[i+1]-spaceHeight//2
-            rem = np.linspace(start, end, end+1-start, endpoint=True).astype(np.uint32)
-            r = np.setdiff1d(r, rem)
-        else:
-            start = lines[i]+spaceHeight//2
-            end = filteredImg.shape[0]-1
-            rem = np.linspace(start, end, end+1-start, endpoint=True).astype(np.uint32)
-            r = np.setdiff1d(r, rem)
-    for i in range(len(lines)):
-        start = lines[i] - staffHeight + 1
-        end = lines[i] + staffHeight - 1
-        rem = np.linspace(start, end, end+1-start, endpoint=True).astype(np.uint32)
-        r = np.setdiff1d(r, rem)
-            
-    filteredImg[r,:] = 1
-
 def getCandidateStaffs(binaryImg, staffHeight):
     filteredImg = np.copy(binaryImg)
     candidates = [] # Contains list of candidate staffs (row, begin, height)
