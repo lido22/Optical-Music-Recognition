@@ -257,7 +257,7 @@ def getNoteCharacter(originalImage, boundingRect, noteClass, lines, staffHeight,
             character += '/16'
         else:
             character += '/32'
-    else:
+    elif noteClass == 'beam':
         heads, noOfBeams = getBeamNoteHeads(img, boundingRect, staffHeight, spaceHeight)
         division = int(8*noOfBeams)
         for h in heads:
