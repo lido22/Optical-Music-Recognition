@@ -90,3 +90,17 @@ def showHist(img):
     imgHist = histogram(img, nbins=256)
     
     bar(imgHist[1].astype(np.uint8), imgHist[0], width=0.8, align='center')
+
+def isDot(img, spaceHeight):
+    if img.shape[0] > spaceHeight:
+        return False
+    return True
+
+
+def load_images_from_folder(folder):
+    images = []
+    for filename in os.listdir(folder):
+        img = cv2.imread(os.path.join(folder,filename), 0)
+        if img is not None:
+            images.append(img)
+    return images
