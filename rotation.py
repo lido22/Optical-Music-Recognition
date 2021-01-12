@@ -626,3 +626,4 @@ def checkVertical(img):
 
 def rotateImage(img):
     return getAreaOfInterest(checkVertical(getAreaOfInterest(getAreaOfInterest2(img))))
+

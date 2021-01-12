@@ -45,7 +45,7 @@ np.random.seed(random_seed)
 
 
 classes = ['a_1', 'a_16', 'a_2', 'a_32', 'a_4', 'a_8', 
-           'barline ', 'chord', 'clef', '.', 'e&&', 'e##', 'e&', 'e', 'e#', 'meter<"4/2"> ', 'meter<"4/4"> ']
+           'barline ', 'chord', 'clef', '.', '&&', '##', '&', '', '#', '\meter<"4/2"> ', '\meter<"4/4"> ']
 
 dataset_dir = sys.argv[1]
 images = load_images_from_folder(dataset_dir)
@@ -53,6 +53,7 @@ images = load_images_from_folder(dataset_dir)
 fileNames = os.listdir(dataset_dir)
 
 for i,img in enumerate(images):
+    print(i)
     start_time = time.time()
     start = time.time()
     rotated = rotateImage(img)
@@ -62,46 +63,57 @@ for i,img in enumerate(images):
     binary = binraization(rotated)//255
     print('binarization time:' + str(time.time() - start))
     
-    show_images([binary])
+    # show_images([binary])
 
     start = time.time()
     staffHeight, spaceHeight = getRefLengths(binary)
     print('Ref lengths time:' + str(time.time() - start))
     
     start = time.time()
-    filteredImg = getCandidateStaffs(binary, staffHeight)
-    filteredImg, candidates, eliminated = removeLonelyStaffs(candidates, binary, staffHeight, spaceHeight, eliminated)
-
-    staffLess = (binary-filteredImg+1).astype(np.uint8)
+    filteredImg, candidates = getCandidateStaffs(binary, staffHeight)
+    filteredImg, candidates, eliminated = removeLonelyStaffs(candidates, binary, staffHeight, spaceHeight, eliminated=[])
+#     filteredImg1, candidates, eliminated = RemoveThinStaffs(candidates, filteredImg, staffHeight)
+#     filteredImg2, candidates, eliminated = removeLonelyStaffs(candidates, binary, staffHeight, spaceHeight, eliminated)
+#     filteredImg3, candidates = addFalseNegatives(candidates, filteredImg2, staffHeight, staffHeight, eliminated)
+#     # print(filteredImg3)
+    staffLess = (binary-filteredImg).astype(np.uint8)
     print('staff removal time:' + str(time.time() - start))
 
     start = time.time()
     lines = getLines(1-filteredImg, staffHeight, spaceHeight)
+    staff = cv2.cvtColor(staffLess, cv2.COLOR_GRAY2BGR)
+    staff[lines] = [0,0,255]
+    plt.imsave('staff'  +'.png', staff)
     print('getting lines time:' + str(time.time() - start))
     
     objects = segmentImage(staffLess, lines, staffHeight, spaceHeight)
     firstTime = True
     output = ""
+    perviousAccedental = ""
     for o in objects:
         features = extract_hog_features(staffLess[o[1]:o[3], o[0]:o[2]],target_img_size)
         symbol_name = classes[np.argmax( nn.predict_proba([features]))]
-        
+
 #         show_images([staffLess[o[1]:o[3], o[0]:o[2]]])
-        if symbol_name == "a_2 " or symbol_name == "a_2 ":
+        if symbol_name == "a_2" or symbol_name == "a_4":
             if isHalf(staffLess[o[1]:o[3], o[0]:o[2]],spaceHeight) :
-                symbol_name = "a_2 "
+                symbol_name = "a_2"
             else:
-                symbol_name = "a_4 "
+                symbol_name = "a_4"
         if symbol_name =="clef":
             if firstTime:
                 firstTime = False
-                output+= '[ '
+                output+= '['
             else:
-                output+= ']\n[ '
-               
+                output+= ']\n['
+        elif firstTime:
+            continue 
         #beam
         elif (o[2]-o[0]) > 4*spaceHeight:
-            output += getNoteCharacter(staffLess, o, "beam", lines, staffHeight, spaceHeight)+" "
+            try:
+                output += getNoteCharacter(staffLess, o, "beam", lines, staffHeight, spaceHeight)+" "
+            except:
+                continue
         #dot and barline
         elif symbol_name == "." or symbol_name == "barline ":
                 if isDot(staffLess[o[1]:o[3], o[0]:o[2]],spaceHeight):
@@ -113,23 +125,37 @@ for i,img in enumerate(images):
             try:
                 notes = getchordText([o[1],o[3]],staffLess[o[1]:o[3], o[0]:o[2]],staffHeight,spaceHeight,lines)
             except:
+                noteSymbol = getNoteCharacter(staffLess, o, "a_4", lines, staffHeight, spaceHeight)
+       
+                # print(noteSymbol)
+                output += noteSymbol[0]+perviousAccedental+noteSymbol[1:]+" "
+                perviousAccedental = ""
+                # print('contin')
+
                 continue
             output +="{"
-            for n in notes[:-1]:
-                output += n+"/4,"
-            output += notes[-1]+"/4"
+            for k in range(0,len(notes)-2,2):
+                output += notes[k:k+2]+"/4,"
+            output += notes[-2:]+"/4"
             output+= "} "
             
         #note
-        elif symbol_name[0]=="a":
+        elif symbol_name!="" and  symbol_name[0]=="a" :
             try:
-                output += getNoteCharacter(staffLess, o, symbol_name, lines, staffHeight, spaceHeight)+" "
+                noteSymbol = getNoteCharacter(staffLess, o, symbol_name, lines, staffHeight, spaceHeight)
+                output += noteSymbol[0]+perviousAccedental+noteSymbol[1:]+" "
+                perviousAccedental = ""
             except:
+                # print('contin')
                 continue
         #accedentals
+        elif symbol_name == '\meter<"4/2"> ' or symbol_name == '\meter<"4/4"> ':
+            output += symbol_name
         else:
-            output+= symbol_name
+
+            perviousAccedental= symbol_name
     output+="]"
+    print(i)
     if len(output.split("\n"))>1:
         output ="{\n"+output+"\n}"
     f =open(sys.argv[2]+"/"+fileNames[i].split(".")[0]+".txt",'w') 

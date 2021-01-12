@@ -23,8 +23,9 @@ def getBeamNoteHeads(img, boundingRect, staffHeight, spaceHeight):
     contourImage = img[min_y:max_y, min_x:max_x]
     
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(staffHeight * 2, 1))
+    contourImage = np.pad(contourImage, 1, constant_values=0)
     contourImage = cv2.morphologyEx(contourImage, cv2.MORPH_OPEN, kernel)
-    
+    # show_images([contourImage])
     
     # hist[i,0] -> size, hist[i,1] -> x, hist[i,2] -> min y, hist[i,3] -> max y 
     hist = np.zeros((w,4), dtype=np.uint32)
@@ -71,22 +72,22 @@ def getBeamNoteHeads(img, boundingRect, staffHeight, spaceHeight):
     return hists, beams
 
 def getHeadCharacter(top, distanceTop, bottom, distanceBottom, spaceHeight):
-
+#     print(top,bottom,distanceTop,distanceBottom)
     if top == 3 and bottom == 4:
         if -distanceBottom >= 0.25 * spaceHeight:
-            return 'e'
+            return 'e1'
         if distanceTop >= 0.25 * spaceHeight:
-            return 'g'
-        return 'f'
+            return 'g1'
+        return 'f1'
     elif top == 2 and bottom == 3:
         if -distanceBottom >= 0.25 * spaceHeight:
-            return 'g'
+            return 'g1'
         if distanceTop >= 0.25 * spaceHeight:
-            return 'b'
-        return 'a'
+            return 'b1'
+        return 'a1'
     elif top == 1 and bottom == 2:
         if -distanceBottom >= 0.25 * spaceHeight:
-            return 'b'
+            return 'b1'
         if distanceTop >= 0.25 * spaceHeight:
             return 'd2'
         return 'c2'
@@ -98,20 +99,20 @@ def getHeadCharacter(top, distanceTop, bottom, distanceBottom, spaceHeight):
         return 'e2'
     
     if top == 3 and bottom == 3 and distanceTop > 0 and distanceBottom < 0:
-        return 'g'
+        return 'g1'
     elif top == 2 and bottom == 2 and distanceTop > 0 and distanceBottom < 0:
-        return 'b'
+        return 'b1'
     elif top == 1 and bottom == 1 and distanceTop > 0 and distanceBottom < 0:
         return 'd2'
     
     if top == 4 and bottom == 4:
         if distanceTop >= 0.25 * spaceHeight:
-            return 'e'
+            return 'e1'
         else:
             if -distanceTop <= 0.25 * spaceHeight:
-                return 'd'
+                return 'd1'
             else:
-                return 'c'
+                return 'c1'
         
     if top == 0 and bottom == 0:
         if -distanceBottom >= 0.25 * spaceHeight:
@@ -126,9 +127,11 @@ def getHeadCharacter(top, distanceTop, bottom, distanceBottom, spaceHeight):
     if top == 0 and bottom == 2:
         return 'd2'
     elif top == 1 and bottom == 3:
-        return 'b'
+        return 'b1'
     elif top == 2 and bottom == 4:
-        return 'g'
+        return 'g1'
+    else:        #didn't know what it is :| 
+        return 'a1'
     
     
 def getNumberOfBeams(contour):
@@ -157,14 +160,14 @@ def getNumberOfBeams(contour):
 
 def getNoteCharacter(originalImage, boundingRect, noteClass, lines, staffHeight, spaceHeight):
     img = originalImage.copy()
-    
+    img2= originalImage.copy()
     (min_x,min_y,max_x,max_y) = boundingRect
-    w = max_x - min_x
-    h = max_y - min_y
+    width = max_x - min_x
+    height = max_y - min_y
     
     contourImage = img[min_y:max_y, min_x:max_x]
     
-#     show_images([contourImage])
+
     character = ''
     
     if noteClass == 'a_1':
@@ -177,9 +180,10 @@ def getNoteCharacter(originalImage, boundingRect, noteClass, lines, staffHeight,
 
     elif noteClass == 'a_2':
         yprojection = np.sum(contourImage//255, axis=0)
-        yprojection = np.where(yprojection>spaceHeight + 2*staffHeight)
+        yprojection = np.where(yprojection>spaceHeight)
         contourImage[:,yprojection] = 0
         
+        # show_images([contourImage])
         a = np.sum(contourImage//255, axis=1)
     
         starts = np.array((a[:-1] == 0) & (a[1:] != 0))
@@ -204,51 +208,45 @@ def getNoteCharacter(originalImage, boundingRect, noteClass, lines, staffHeight,
             character += '/2'
 
     elif noteClass == 'a_4' or noteClass == 'a_8' or noteClass == 'a_16' or noteClass == 'a_32':
-#         show_images([contourImage])
-        yprojection = np.sum(contourImage//255, axis=0)
-        yprojection = np.where(yprojection>spaceHeight+2*staffHeight)
-        contourImage[:,yprojection] = 0
+        ysum = np.sum(contourImage//255, axis=0)
+        # yprojection = np.where(ysum>spaceHeight+staffHeight)
+        # contourImage[:,yprojection] = 0
+
+        if noteClass != 'a_4':
+            contourImage = contourImage[:, 0:np.argmax(ysum)]
+
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(staffHeight * 2, 1))
+        contourImage = np.pad(contourImage, 1, constant_values=0)
+        contourImage = cv2.morphologyEx(contourImage, cv2.MORPH_OPEN, kernel)
+
+        # contourImage = cv2.morphologyEx(contourImage, cv2.MORPH_OPEN, np.ones((staffHeight, contourImage.shape[1]//2)))
+        # show_images([contourImage])
+
+        window = np.sum(contourImage, axis = 1)
+
+        starts = np.array((window[:-1] == 0) & (window[1:] != 0))
+        starts_ix = np.where(starts)[0] + 1
+        ends = np.array((window[:-1] != 0) & (window[1:] == 0))
+        ends_ix = np.where(ends)[0]
+
+        noteTop, noteBottom = 0, height
+        if window[0] != 0:
+            starts_ix = np.append(0, starts_ix)
+
+        if window[-1] != 0:
+            ends_ix = np.append(ends_ix, window.size-1)
+
+        if starts_ix.size != 0:
+            index = np.argmax(ends_ix - starts_ix)
+            noteTop = min_y + starts_ix[index]
+            noteBottom = min_y + ends_ix[index]
         
-        hist = np.zeros((w,4), dtype=np.uint32)
-    
-        for i in range(w):
-            window = contourImage[:, i: min(i + 1, w)]
-        #     show_images([window])
-            # xprojection = np.sum(window, axis=1)
-            xprojection = window
-        #     xprojection = np.where(xprojection>spaceHeight//4, 1,0)
-
-            starts = np.array((window[:-1] == 0) & (window[1:] != 0))
-            starts_ix = np.where(starts)[0] + 1
-            ends = np.array((window[:-1] != 0) & (window[1:] == 0))
-            ends_ix = np.where(ends)[0]
-
-            if window[0] != 0:
-                starts_ix = np.append(0, starts_ix)
-
-            if window[-1] != 0:
-                ends_ix = np.append(ends_ix, window.size-1)
-
-            if starts_ix.size != 0:
-                index = np.argmax(ends_ix - starts_ix)
-                hist[i,1] = i
-                hist[i,2] = starts_ix[index]
-                hist[i,3] = ends_ix[index]
-                length = hist[i,3] - hist[i,2]
-                if 0.75*spaceHeight < length < spaceHeight*1.5:
-                    hist[i,0] = length
-        
-        peaks, _ = find_peaks(hist[:,0], distance=spaceHeight)
-        widths = peak_widths(hist[:,0], peaks)[0]
-        
-        peakIndex = np.argmax(widths)
-        peak = peaks[peakIndex]
-        h = hist[peak]
-        noteTop = min_y + h[2]
-        noteBottom = min_y + h[3]
         _, top, distanceTop = getNearestLine(noteTop,lines)
         _, bottom, distanceBottom = getNearestLine(noteBottom,lines)
         character = getHeadCharacter(top, distanceTop, bottom, distanceBottom, spaceHeight)
+        
+
+        # print(character)
         if noteClass == 'a_4':
             character += '/4'
         elif noteClass == 'a_8':
@@ -257,7 +255,52 @@ def getNoteCharacter(originalImage, boundingRect, noteClass, lines, staffHeight,
             character += '/16'
         else:
             character += '/32'
-    elif noteClass == 'beam':
+        
+        if noteClass == 'a_4' and noteBottom > height//2:
+            bottomHalf = img2[min_y:max_y, min_x:max_x][height//2:, :]
+            
+            # show_images([contourImage])
+            yprojection = np.sum(bottomHalf//255, axis=0)
+            
+            starts = np.array((yprojection[:-1] == 0) & (yprojection[1:] != 0))
+            starts_ix = np.where(starts)[0] + 2
+            ends = np.array((yprojection[:-1] != 0) & (yprojection[1:] == 0))
+            ends_ix = np.where(ends)[0] + 2
+
+            if yprojection[0] != 0:
+                starts_ix = np.append(1, starts_ix)
+
+            if yprojection[-1] != 0:
+                ends_ix = np.append(ends_ix, yprojection.size+1)
+            
+            runs = ends_ix - starts_ix
+            
+            noOfDots = runs[runs>2*staffHeight].size - 1
+            
+            character += ('.' * noOfDots)
+        else:
+            bottomHalf = img2[min_y:max_y, min_x:max_x][noteTop-min_y:, :]
+            # show_images([img2])
+            # show_images([bottomHalf])
+            yprojection = np.sum(bottomHalf//255, axis=0)
+            starts = np.array((yprojection[:-1] == 0) & (yprojection[1:] != 0))
+            starts_ix = np.where(starts)[0] + 2
+            ends = np.array((yprojection[:-1] != 0) & (yprojection[1:] == 0))
+            ends_ix = np.where(ends)[0] + 2
+
+            if yprojection[0] != 0:
+                starts_ix = np.append(1, starts_ix)
+
+            if yprojection[-1] != 0:
+                ends_ix = np.append(ends_ix, yprojection.size+1)
+            
+            runs = ends_ix - starts_ix
+            noOfDots = runs[runs>2*staffHeight].size - 1
+            
+            character += ('.' * noOfDots)        
+        
+        
+    elif noteClass == "beam":
         heads, noOfBeams = getBeamNoteHeads(img, boundingRect, staffHeight, spaceHeight)
         division = int(8*noOfBeams)
         for h in heads:
