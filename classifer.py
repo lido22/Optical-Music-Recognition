@@ -33,28 +33,37 @@ def isDot(img, spaceHeight):
     if img.shape[0] > spaceHeight:
         return False
     return True
-
 def chord2text(img,cnt_pos,staffHeight,spaceHeight,lines):
     char_middle = ''
     char_top = ''
     char_down = ''
     height = cnt_pos[1] - cnt_pos[0]
-    if height > 2.75 * spaceHeight: 
+    # show_images([img])
+    # print(img.shape)
+    if height > 3 * spaceHeight: 
         # height of 3 notes
         # print('cord 3 notes')
-        middle = img[img.shape[0]//3:img.shape[0]*2//3,staffHeight:img.shape[1]-staffHeight]
+        # print(cnt_pos,spaceHeight)
+        # show_images([img[:cnt_pos[1]+spaceHeight,:]])
+        # space = (img.shape[0] - 3 * spaceHeight -2*staffHeight )//2
+        space = spaceHeight
+        middle = img[spaceHeight+staffHeight*3//2: 2*(spaceHeight+staffHeight*3//2),:]
+        # show_images([img])
 
+        # show_images([img[:spaceHeight+staffHeight,:],middle,img[2*(spaceHeight+staffHeight*3//2)-staffHeight//2:,:]],['top','middle','down'])
         #get top and down
         _, top, distanceTop = getNearestLine(cnt_pos[0],lines)
-        _, bottom, distanceBottom = getNearestLine(cnt_pos[0] + height //3 ,lines)
+        _, bottom, distanceBottom = getNearestLine(cnt_pos[0] + spaceHeight+staffHeight*3//2 ,lines)
         char_top = getHeadCharacter(top, distanceTop, bottom, distanceBottom, spaceHeight)
-        _, top, distanceTop = getNearestLine(cnt_pos[0] + height*2//3,lines)
+
+        _, top, distanceTop = getNearestLine(cnt_pos[0] + 2*(spaceHeight+staffHeight*3//2)-staffHeight//2,lines)
         _, bottom, distanceBottom = getNearestLine((cnt_pos[1]),lines)
         char_down = getHeadCharacter(top, distanceTop, bottom, distanceBottom, spaceHeight)
-        if np.sum(middle) > len(middle)//2:
+        if np.sum(middle) > (middle.shape[0]*middle.shape[1])//2:
             # there's a note in middle 
-            _, top, distanceTop = getNearestLine(cnt_pos[0] + height //3 ,lines)
-            _, bottom, distanceBottom = getNearestLine(cnt_pos[0] + height*2//3,lines)
+            # print('middle exists')
+            _, top, distanceTop = getNearestLine(cnt_pos[0] + spaceHeight+staffHeight*3//2 ,lines)
+            _, bottom, distanceBottom = getNearestLine(cnt_pos[0] + 2*(spaceHeight+staffHeight*3//2),lines)
             char_middle = getHeadCharacter(top, distanceTop, bottom, distanceBottom, spaceHeight)
     elif height < 1.5 * spaceHeight:
         # print('cord one note')
@@ -65,43 +74,56 @@ def chord2text(img,cnt_pos,staffHeight,spaceHeight,lines):
         char_down = getHeadCharacter(top, distanceTop, bottom, distanceBottom, spaceHeight)
     else: 
         # print('cord two notes')
+        # show_images([img[:spaceHeight+staffHeight*3//2,:],img[img.shape[0]-spaceHeight-staffHeight*3//2:,:]],['top','down'])
         _, top, distanceTop = getNearestLine(cnt_pos[0],lines)
-        _, bottom, distanceBottom = getNearestLine(cnt_pos[0]+ height//2,lines)
+        _, bottom, distanceBottom = getNearestLine(cnt_pos[0]+ spaceHeight+staffHeight*3//2,lines)
         char_top = getHeadCharacter(top, distanceTop, bottom, distanceBottom, spaceHeight)
-        _, top, distanceTop = getNearestLine(cnt_pos[0]+height//2,lines)
+        _, top, distanceTop = getNearestLine(cnt_pos[1]-spaceHeight-staffHeight*3//2,lines)
         _, bottom, distanceBottom = getNearestLine(cnt_pos[1],lines)
         char_down = getHeadCharacter(top, distanceTop, bottom, distanceBottom, spaceHeight)
         # height of 2 notes
     # print(str(char_down) + str(char_middle) + str(char_top))
     return [str(char_down) , str(char_middle) , str(char_top)]
-
-
-def getchordText(cnt_pos,cnt_img,staffHeight,spaceHeight,lines):
+def extract_cnt(cnt_img,staffHeight,spaceHeight):
+    chord = cnt_img.copy()
+    chord[chord>0] = 1
+    # print(chord.shape)
+    chord = chord[:,chord.shape[1]//2:]
+    idx = np.where(np.sum(chord[:,:staffHeight],axis= 1)>staffHeight//2)
+    # print(idx)
+    min_y= idx[0][0]
+    max_y= idx[0][len(idx[0])-1]
+    # print(min_y,max_y)
+    # cnt_img = cnt_img[min_y:max_y,:]
+    # cnt_img[cnt_img.shape[0]//2,:] = 0
     # show_images([cnt_img])
-    h_hist = np.sum(cnt_img,axis=0)
+    return min_y, max_y
+def getchordText(cnt_pos,cnt_img,staffHeight,spaceHeight,lines):
+    cnt_img[cnt_img > 0]=1 
+    temp = binary_dilation(cnt_img[:spaceHeight,:].copy(),np.ones((1,staffHeight)))
+    h_hist = np.sum(temp,axis=0)
     bar_idx = np.where(h_hist== np.max(h_hist))[0][0]
-    img = binary_opening(cnt_img.copy(),np.ones((1,cnt_img.shape[1]//2)))
-    if ((bar_idx >  cnt_img.shape[1]//2 -staffHeight) and (bar_idx < cnt_img.shape[1]//2+staffHeight)):
+    img = cnt_img.copy()
+    # print(cnt_img.shape,bar_idx,cnt_img.shape[1]//4)
+    if ((bar_idx >  cnt_img.shape[1]//3 ) and (bar_idx < cnt_img.shape[1]*2//3)):
         # print('cord two sides')
         # chord is two sides 
+        # show_images([img])
         rh = img[:,:bar_idx] #right half
-        rh = binary_opening(rh.copy(),np.ones((1,rh.shape[1]//2)))
+        # rh = binary_opening(rh.copy(),np.ones((1,rh.shape[1]//2)))
         lh = img[:,bar_idx:] # left half 
-        lh = binary_opening(lh.copy(),np.ones((1,lh.shape[1]//2)))
+        # lh = binary_opening(lh.copy(),np.ones((1,lh.shape[1]//2)))
+        # show_images([rh,lh])
         # apply on right half
-        hist = np.sum(rh,axis=1)
-        idxs = np.where(hist > staffHeight//2)
-        min_y = idxs[0][0]
-        max_y = idxs[0][len(idxs[0])-1]+1
+        min_y ,max_y = extract_cnt(rh,staffHeight,spaceHeight)
+        # show_images([rh[min_y:max_y,:]],['two sides Right side'])
         rcnt_pos = [min_y+cnt_pos[0],max_y+cnt_pos[0]]
-        text1 = chord2text(img,rcnt_pos,staffHeight,spaceHeight,lines)
+        text1 = chord2text(rh[min_y:max_y,:],rcnt_pos,staffHeight,spaceHeight,lines)
         #apply on left half
-        hist = np.sum(lh,axis=1)
-        idxs = np.where(hist > staffHeight//2)
-        min_y = idxs[0][0]
-        max_y = idxs[0][len(idxs[0])-1]+1
+        min_y ,max_y = extract_cnt(lh,staffHeight,spaceHeight)
+        # show_images([lh[min_y:max_y,:]],['two sides left side'])
         lcnt_pos = [min_y+cnt_pos[0],max_y+cnt_pos[0]]     
-        text2 = chord2text(img,lcnt_pos,staffHeight,spaceHeight,lines)
+        text2 = chord2text(lh[min_y:max_y,:],lcnt_pos,staffHeight,spaceHeight,lines)
         text1.extend(text2)
         op = []
         for t in text1: 
@@ -113,19 +135,16 @@ def getchordText(cnt_pos,cnt_img,staffHeight,spaceHeight,lines):
     else:
         # print('cord one side')
         # chor is one side
-        hist = np.sum(img,axis=1)
-        idxs = np.where(hist > staffHeight//2)
-        min_y = idxs[0][0]
-        max_y = idxs[0][len(idxs[0])-1]+1
+        min_y ,max_y = extract_cnt(cnt_img,staffHeight,spaceHeight)
+        # show_images([cnt_img[min_y:max_y,:]],['one side'])
         cnt_pos = [min_y+cnt_pos[0],max_y+cnt_pos[0]]
-        text1 = chord2text(img,cnt_pos,staffHeight,spaceHeight,lines)
+        text1 = chord2text(cnt_img[min_y:max_y,:],cnt_pos,staffHeight,spaceHeight,lines)
         op = []
         for t in text1: 
             if t != '':
                 op.append(t)
         op = sorted(op,key= lambda b:b[0])
         return "".join(op)
-
 def isHalf(img, spaceHeight):
 
     w = img.shape[1]
@@ -167,9 +186,8 @@ def isHalf(img, spaceHeight):
 
 def downSize(image, width=1000):
     (h, w) = image.shape[:2]
-    print(h, w)
+    # print(h, w)
     shrinkingRatio = width / float(w)
     dsize  = (width, int(h * shrinkingRatio))
     resized = cv2.resize(image, dsize , interpolation=cv2.INTER_AREA)
     return resized  
-
