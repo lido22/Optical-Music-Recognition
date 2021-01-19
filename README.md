@@ -1,3 +1,5 @@
 # OMR
 
-In this project we take a picture of music sheet and convert it to real music
+### OMR is a python software that converts music note sheets to music files
+ Our algorithm depends on couple of image processing techniques.
+ ***implemented in python***
