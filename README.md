@@ -1,5 +1,5 @@
 # OMR
-NOTE: "The project got the highest grade of 18 other projects."
+NOTE: ###The project got the highest grade of 18 other projects.###
 ## Used Algorithms
 
 ### Deskewing
