@@ -1,5 +1,5 @@
 # OMR
-
+NOTE: "The project got the highest grade of 18 other projects."
 ## Used Algorithms
 
 ### Deskewing
@@ -54,6 +54,8 @@ lengths are chosen.
 
 There was a more accurate method in which we calculate the lengths form the gray
 image, but it is too slow and we found it as an overkill.
+
+
 ![image](https://user-images.githubusercontent.com/42592954/122621370-9d23b680-d095-11eb-9832-aa7cc4bb5173.png)
 
 ```
@@ -151,25 +153,6 @@ the position of each note and return the sorted alphabetically.
 Other notes are done using a series of y & x projections.
 
 
-## References
-
-1. Adaptive Thresholding Using the Integral Image by Derek Bradley and Gerhard Roth
-2. Music Score Binarization Based on Domain Knowledge _by_ Telmo Pinto, Ana Rebelo,
-    Gilson Giraldi, and Jaime S. Cardoso
-3. Robust staffline thickness and distance estimation in binary and gray-level music scores
-    _by_ Jaime S. Cardoso, Ana Rebelo
-4. Sheet Music Reader _by_ Sevy Harris, Prateek Verma
-5. Stave Extraction for Printed Music Scores _by_ Hidetoshi Miyao
-6. An Efficient Staff Removal Approach from Printed Musical Documents _by_ Anjan Dutta
-7. A Shortest Path Approach for Staff Line Detection by authers of 8
-8. A CONNECTED PATH APPROACH FOR STAFF DETECTION ON A MUSIC SCORE _by_ Jaime S.
-    Cardoso, Artur Capela, Ana Rebelo Carlos Guedes
-9. STAFF LINE DETECTION AND REMOVAL WITH STABLE PATHS by authers of 8
-10. AN OPTICAL MUSIC RECOGNITION SYSTEM FOR SKEW OR INVERTED MUSICAL SCORES
-    _by_ YUNG-SHENG CHEN, FENG-SHENG CHEN, CHIN-HUNG TENG
-11. Optical Music Sheet Segmentation _by_ P.Nesi
-
-
 ## Accuracy & Performance
 
 The total runtime of all 32 images is: 110 seconds
@@ -195,8 +178,6 @@ _____________________________________________________________________
 Testing: 07.txt
 Accuracy 98.63013698630137%
 _____________________________________________________________________
-
-
 Testing: 08.txt
 Accuracy 91.30434782608695%
 _____________________________________________________________________
@@ -232,5 +213,24 @@ printed images the results were not so well on the handwritten camera captured
 images. This is due to the various deformations occur to the image in binarization,
 rotation and segmentation steps. Further work could be done to improve the
 preprocessing steps and the whole result.
+
+
+## References
+
+1. Adaptive Thresholding Using the Integral Image by Derek Bradley and Gerhard Roth
+2. Music Score Binarization Based on Domain Knowledge _by_ Telmo Pinto, Ana Rebelo,
+    Gilson Giraldi, and Jaime S. Cardoso
+3. Robust staffline thickness and distance estimation in binary and gray-level music scores
+    _by_ Jaime S. Cardoso, Ana Rebelo
+4. Sheet Music Reader _by_ Sevy Harris, Prateek Verma
+5. Stave Extraction for Printed Music Scores _by_ Hidetoshi Miyao
+6. An Efficient Staff Removal Approach from Printed Musical Documents _by_ Anjan Dutta
+7. A Shortest Path Approach for Staff Line Detection by authers of 8
+8. A CONNECTED PATH APPROACH FOR STAFF DETECTION ON A MUSIC SCORE _by_ Jaime S.
+    Cardoso, Artur Capela, Ana Rebelo Carlos Guedes
+9. STAFF LINE DETECTION AND REMOVAL WITH STABLE PATHS by authers of 8
+10. AN OPTICAL MUSIC RECOGNITION SYSTEM FOR SKEW OR INVERTED MUSICAL SCORES
+    _by_ YUNG-SHENG CHEN, FENG-SHENG CHEN, CHIN-HUNG TENG
+11. Optical Music Sheet Segmentation _by_ P.Nesi
 
 
